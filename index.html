@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ateliê Coletivo — Arte que Habita</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            cream: '#F7F4EE',
+            'cream-dark': '#EDE8DE',
+            charcoal: '#282624',
+            'charcoal-light': '#4A4744',
+            gold: '#B8965A',
+            'gold-light': '#D4B07A',
+            'gold-muted': '#C9A96E',
+          },
+          fontFamily: {
+            serif: ['Cormorant Garamond', 'Georgia', 'serif'],
+            sans: ['Jost', 'system-ui', 'sans-serif'],
+          },
+        }
+      }
+    }
+  </script>
+  <style>
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { background-color: #F7F4EE; color: #282624; font-family: 'Jost', sans-serif; }
+
+    /* Gold rule divider */
+    .gold-rule {
+      display: block;
+      width: 48px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, #B8965A, transparent);
+    }
+
+    /* Hero overlay grain */
+    .hero-grain::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* Navigation gold underline */
+    .nav-item {
+      position: relative;
+      padding-bottom: 2px;
+    }
+    .nav-item::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 0;
+      height: 1px;
+      background: #B8965A;
+      transition: width 0.4s ease;
+    }
+    .nav-item:hover::after,
+    .nav-item.active::after {
+      width: 100%;
+    }
+
+    /* Card hover */
+    .art-card {
+      transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.4s ease;
+    }
+    .art-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 24px 48px -12px rgba(40, 38, 36, 0.18);
+    }
+    .art-card img {
+      transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    .art-card:hover img {
+      transform: scale(1.04);
+    }
+
+    /* Buy button */
+    .btn-buy {
+      position: relative;
+      overflow: hidden;
+      letter-spacing: 0.12em;
+      transition: color 0.35s ease;
+    }
+    .btn-buy::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: #282624;
+      transform: translateY(100%);
+      transition: transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    .btn-buy:hover::before {
+      transform: translateY(0);
+    }
+    .btn-buy:hover {
+      color: #F7F4EE;
+    }
+    .btn-buy span {
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Section fade-in */
+    .fade-in {
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+    .fade-in.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Artist tab active */
+    .artist-tab.active {
+      color: #282624;
+      border-bottom: 1.5px solid #B8965A;
+    }
+    .artist-tab {
+      color: #9A9590;
+      border-bottom: 1.5px solid transparent;
+      transition: color 0.3s, border-color 0.3s;
+    }
+
+    /* Section visibility toggle */
+    .artist-section { display: none; }
+    .artist-section.active { display: block; }
+
+    /* Image placeholder shimmer */
+    .img-placeholder {
+      background: linear-gradient(135deg, #EDE8DE 25%, #E5DFD3 50%, #EDE8DE 75%);
+      background-size: 200% 200%;
+    }
+
+    /* Gold accent border on section header */
+    .section-accent {
+      width: 32px;
+      height: 2px;
+      background: #B8965A;
+      margin: 0 auto 1.5rem;
+    }
+
+    /* Scrollbar minimal */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: #F7F4EE; }
+    ::-webkit-scrollbar-thumb { background: #C9A96E; border-radius: 2px; }
+  </style>
+</head>
+<body class="antialiased">
+
+  <!-- ===== HEADER ===== -->
+  <header class="fixed top-0 left-0 right-0 z-50 bg-cream/95 backdrop-blur-sm border-b border-charcoal/8">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+      <a href="#hero" class="font-serif text-xl tracking-widest text-charcoal font-light">
+        ATELIÊ <span class="text-gold">·</span> COLETIVO
+      </a>
+      <nav class="hidden md:flex gap-8 text-xs tracking-widest uppercase">
+        <a href="#tear-tinta" class="nav-item text-charcoal-light hover:text-charcoal transition-colors">Tear & Tinta</a>
+        <a href="#atelie-vivo" class="nav-item text-charcoal-light hover:text-charcoal transition-colors">Ateliê Vivo</a>
+        <a href="#acervo-secreto" class="nav-item text-charcoal-light hover:text-charcoal transition-colors">Acervo Secreto</a>
+      </nav>
+      <button id="menu-btn" class="md:hidden flex flex-col gap-1.5 p-1" aria-label="Menu">
+        <span class="block w-5 h-px bg-charcoal transition-all" id="bar1"></span>
+        <span class="block w-5 h-px bg-charcoal transition-all" id="bar2"></span>
+        <span class="block w-3 h-px bg-gold transition-all" id="bar3"></span>
+      </button>
+    </div>
+    <!-- Mobile Menu -->
+    <div id="mobile-menu" class="hidden md:hidden bg-cream border-t border-charcoal/8">
+      <nav class="flex flex-col py-6 px-6 gap-6">
+        <a href="#tear-tinta" class="text-xs tracking-widest uppercase text-charcoal-light hover:text-charcoal" onclick="closeMobileMenu()">Tear & Tinta</a>
+        <a href="#atelie-vivo" class="text-xs tracking-widest uppercase text-charcoal-light hover:text-charcoal" onclick="closeMobileMenu()">Ateliê Vivo</a>
+        <a href="#acervo-secreto" class="text-xs tracking-widest uppercase text-charcoal-light hover:text-charcoal" onclick="closeMobileMenu()">Acervo Secreto</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ===== HERO ===== -->
+  <section id="hero" class="relative min-h-screen flex flex-col items-center justify-center px-6 pt-24 pb-20 hero-grain overflow-hidden">
+    <!-- Background geometric -->
+    <div class="absolute inset-0 overflow-hidden pointer-events-none">
+      <div class="absolute top-0 right-0 w-1/2 h-full bg-cream-dark/40"></div>
+      <div class="absolute bottom-0 left-0 w-32 h-px bg-gold/30"></div>
+      <div class="absolute top-1/3 left-6 w-px h-32 bg-gold/20"></div>
+      <div class="absolute top-1/4 right-12 w-px h-48 bg-charcoal/6"></div>
+      <!-- Decorative circle -->
+      <div class="absolute -bottom-20 -right-20 w-64 h-64 rounded-full border border-gold/15"></div>
+      <div class="absolute -bottom-32 -right-32 w-96 h-96 rounded-full border border-charcoal/5"></div>
+    </div>
+
+    <div class="relative z-10 max-w-2xl mx-auto text-center">
+      <p class="font-sans text-xs tracking-[0.3em] uppercase text-gold mb-8 fade-in" style="transition-delay:0.1s">Arte Artesanal · Edição Limitada</p>
+      
+      <h1 class="font-serif text-6xl md:text-8xl leading-none tracking-tight text-charcoal mb-2 fade-in" style="transition-delay:0.2s">
+        Ateliê
+      </h1>
+      <h1 class="font-serif text-6xl md:text-8xl leading-none tracking-tight text-charcoal mb-8 fade-in italic" style="transition-delay:0.3s">
+        Coletivo
+      </h1>
+
+      <div class="section-accent fade-in" style="transition-delay:0.4s"></div>
+
+      <p class="font-serif text-xl md:text-2xl text-charcoal-light leading-relaxed max-w-lg mx-auto mt-6 mb-12 fade-in italic" style="transition-delay:0.5s">
+        "Onde o fio encontra o pigmento e a tela guarda segredos — uma família, três linguagens, uma única alma."
+      </p>
+
+      <div class="flex flex-col sm:flex-row gap-4 justify-center fade-in" style="transition-delay:0.6s">
+        <a href="#tear-tinta" class="btn-buy inline-block border border-charcoal text-charcoal text-xs tracking-[0.2em] uppercase px-10 py-4 font-sans font-medium">
+          <span>Explorar Obras</span>
+        </a>
+        <a href="#acervo-secreto" class="inline-block text-xs tracking-[0.2em] uppercase px-10 py-4 font-sans font-medium text-gold border border-gold/40 hover:bg-gold/8 transition-colors">
+          Acervo Exclusivo
+        </a>
+      </div>
+    </div>
+
+    <!-- Scroll hint -->
+    <div class="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 fade-in" style="transition-delay:0.9s">
+      <span class="text-xs tracking-widest uppercase text-charcoal/30 font-sans">Rolar</span>
+      <div class="w-px h-8 bg-gradient-to-b from-charcoal/20 to-transparent animate-pulse"></div>
+    </div>
+  </section>
+
+  <!-- ===== MANIFESTO STRIP ===== -->
+  <div class="bg-charcoal py-8 overflow-hidden">
+    <div class="flex gap-16 items-center animate-marquee-container">
+      <div class="flex gap-16 items-center whitespace-nowrap text-xs tracking-[0.25em] uppercase text-cream/40 font-sans shrink-0">
+        <span>Arte Têxtil</span><span class="text-gold">·</span>
+        <span>Telas Originais</span><span class="text-gold">·</span>
+        <span>Desenho Exclusivo</span><span class="text-gold">·</span>
+        <span>Edição Limitada</span><span class="text-gold">·</span>
+        <span>Envio Nacional</span><span class="text-gold">·</span>
+        <span>Peça Única</span><span class="text-gold">·</span>
+        <span>Arte Familiar</span><span class="text-gold">·</span>
+        <span>Feito à Mão</span><span class="text-gold">·</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SECTION: TEAR & TINTA ===== -->
+  <section id="tear-tinta" class="py-24 px-6 max-w-6xl mx-auto">
+    <div class="text-center mb-16 fade-in">
+      <span class="font-sans text-xs tracking-[0.3em] uppercase text-gold block mb-4">Artista · Madrasta</span>
+      <h2 class="font-serif text-5xl md:text-6xl text-charcoal italic mb-2">Tear & Tinta</h2>
+      <p class="font-sans text-sm tracking-widest uppercase text-charcoal/30 mb-6">Arte em Tecido · Tapeçaria · Bordado Contemporâneo</p>
+      <div class="section-accent"></div>
+      <p class="font-serif text-lg text-charcoal-light italic max-w-md mx-auto mt-6">
+        "Cada fio é uma intenção. Cada nó, uma história tecida à mão, para habitar o seu espaço."
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+
+      <!-- Card 1 -->
+      <article class="art-card bg-white group cursor-pointer">
+        <div class="overflow-hidden aspect-[3/4] img-placeholder relative">
+          <img src="https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=600&q=80" alt="Tapeçaria Ouro Velho" class="w-full h-full object-cover" loading="lazy" onerror="this.style.display='none'" />
+        </div>
+        <div class="p-6">
+          <span class="font-sans text-xs tracking-widest uppercase text-gold/70 block mb-1">Tapeçaria · Série Áurea</span>
+          <h3 class="font-serif text-xl text-charcoal mb-1">Ouro Velho</h3>
+          <p class="font-sans text-xs text-charcoal/40 mb-4">Lã natural e fios dourados · 40×60cm · Peça única</p>
+          <div class="flex items-end justify-between">
+            <span class="font-serif text-2xl text-charcoal">R$ 890</span>
+            <a href="SEU_LINK_DE_PAGAMENTO_AQUI" target="_blank" rel="noopener" class="btn-buy border border-charcoal text-charcoal text-xs tracking-[0.15em] uppercase px-5 py-2.5 font-sans">
+              <span>Comprar Agora</span>
+            </a>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card 2 -->
+      <article class="art-card bg-white group cursor-pointer">
+        <div class="overflow-hidden aspect-[3/4] img-placeholder relative">
+          <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80" alt="Bordado Noturno" class="w-full h-full object-cover" loading="lazy" onerror="this.style.display='none'" />
+        </div>
+        <div class="p-6">
+          <span class="font-sans text-xs tracking-widest uppercase text-gold/70 block mb-1">Bordado · Série Lua</span>
+          <h3 class="font-serif text-xl text-charcoal mb-1">Noite Bordada</h3>
+          <p class="font-sans text-xs text-charcoal/40 mb-4">Linho e fio de seda · 30×30cm · Edição de 5</p>
+          <div class="flex items-end justify-between">
+            <span class="font-serif text-2xl text-charcoal">R$ 480</span>
+            <a href="SEU_LINK_DE_PAGAMENTO_AQUI" target="_blank" rel="noopener" class="btn-buy border border-charcoal text-charcoal text-xs tracking-[0.15em] uppercase px-5 py-2.5 font-sans">
+              <span>Comprar Agora</span>
+            </a>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card 3 -->
+      <article class="art-card bg-white group cursor-pointer">
+        <div class="overflow-hidden aspect-[3/4] img-placeholder relative">
+          <img src="https://images.unsplash.com/photo-1465433360938-e02f5767aa04?w=600&q=80" alt="Tapeçaria Terra" class="w-full h-full object-cover" loading="lazy" onerror="this.style.display='none'" />
+        </div>
+        <div class="p-6">
+          <span class="font-sans text-xs tracking-widest uppercase text-gold/70 block mb-1">Tapeçaria · Série Terra</span>
+          <h3 class="font-serif text-xl text-charcoal mb-1">Raízes do Cerrado</h3>
+          <p class="font-sans text-xs text-charcoal/40 mb-4">Algodão natural tingido · 50×70cm · Peça única</p>
+          <div class="flex items-end justify-between">
+            <span class="font-serif text-2xl text-charcoal">R$ 1.200</span>
+            <a href="SEU_LINK_DE_PAGAMENTO_AQUI" target="_blank" rel="noopener" class="btn-buy border border-charcoal text-charcoal text-xs tracking-[0.15em] uppercase px-5 py-2.5 font-sans">
+              <span>Comprar Agora</span>
+            </a>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card 4 -->
+      <article class="art-card bg-white group cursor-pointer sm:col-span-1">
+        <div class="overflow-hidden aspect-[3/4] img-placeholder relative">
+          <img src="https://images.unsplash.com/photo-1612897853710-0bfbb7af7fa9?w=600&q=80" alt="Macramê Etéreo" class="w-full h-full object-cover" loading="lazy" onerror="this.style.display='none'" />
+        </div>
+        <div class="p-6">
+          <span class="font-sans text-xs tracking-widest uppercase text-gold/70 block mb-1">Macramê · Série Ar</span>
+          <h3 class="font-serif text-xl text-charcoal mb-1">Etéreo</h3>
+          <p class="font-sans text-xs text-charcoal/40 mb-4">Corda de algodão · 25×80cm · Edição de 3</p>
+          <div class="flex items-end justify-between">
+            <span class="font-serif text-2xl text-charcoal">R$ 340</span>
+            <a href="SEU_LINK_DE_PAGAMENTO_AQUI" target="_blank" rel="noopener" class="btn-buy border border-charcoal text-charcoal text-xs tracking-[0.15em] uppercase px-5 py-2.5 font-sans">
+              <span>Comprar Agora</span>
+            </a>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card 5 -->
+      <article class="art-card bg-white group cursor-pointer">
+        <div class="overflow-hidden aspect-[3/4] img-placeholder relative">
+          <img src="https://images.unsplash.com/photo-1481277542470-605612bd2d61?w=600&q=80" alt="Quilt Moderno" class="w-full h-full object-cover" loading="lazy" onerror="this.style.display='none'" />
+        </div>
+        <div class="p-6">
+          <span class="font-sans text-xs tracking-widest uppercase text-gold/70 block mb-1">Quilt · Série Memória</span>
+          <h3 class="font-serif text-xl text-charcoal mb-1">Memória Geométrica</h3>
+          <p class="font-sans text-xs text-charcoal/40 mb-4">Tecidos mistos · 90×90cm · Peça única</p>
+          <div class="flex items-end justify-between">
+            <span class="font-serif text-2xl text-charcoal">R$ 2.100</span>
+            <a href="SEU_LINK_DE_PAGAMENTO_AQUI" target="_blank" rel="noopener" class="btn-buy border border-charcoal text-charcoal text-xs tracking-[0.15em] uppercase px-5 py-2.5 font-sans">
+              <span>Comprar Agora</span>
+            </a>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card 6 -->
+      <article class="art-card bg-white group cursor-pointer">
+        <div class="overflow-hidden aspect-[3/4] img-placeholder relative">
+          <img src="https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=600&q=80" alt="Tear Abstrato" class="w-full h-full object-cover" loading="lazy" onerror="this.style.display='none'" />
+        </div>
+        <div class="p-6">
+          <span class="font-sans text-xs tracking-widest uppercase text-gold/70 block mb-1">Tear · Série Abstrata</span>
+          <h3 class="font-serif text-xl text-charcoal mb-1">Silêncio Colorido</h3>
+          <p class="font-sans text-xs text-charcoal/40 mb-4">Lã merino e viscose · 35×50cm · Edição de 4</p>
+          <div class="flex items-end justify-between">
+            <span class="font-serif text-2xl text-charcoal">R$ 720</span>
+            <a href="SEU_LINK_DE_PAGAMENTO_AQUI" target="_blank" rel="noopener" class="btn-buy border border-charcoal text-charcoal text-xs tracking-[0.15em] uppercase px-5 py-2.5 font-sans">
+              <span>Comprar Agora</span>
+            </a>
+          </div>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- ===== DIVIDER ===== -->
+  <div class="max-w-6xl mx-auto px-6">
+    <div class="border-t border-charcoal/10 flex items-center gap-4 py-2">
+      <div class="flex-1 h-px bg-charcoal/8"></div>
+      <div class="w-1 h-1 rounded-full bg-gold"></div>
+      <div class="flex-1 h-px bg-charcoal/8"></div>
+    </div>
+  </div>
+
+  <!-- ===== SECTION: ATELIÊ VIVO ===== -->
+  <section id="atelie-vivo" class="py-24 px-6 max-w-6xl mx-auto">
+    <div class="text-center mb-16 fade-in">
+      <span class="font-sans text-xs tracking-[0.3em] uppercase text-gold block mb-4">Artista · Pai</span>
+      <h2 class="font-serif text-5xl md:text-6xl text-charcoal italic mb-2">Ateliê Vivo</h2>
+      <p class="font-sans text-sm tracking-widest uppercase text-charcoal/30 mb-6">Telas Acrílicas · Aquarela · Arte ao Vivo</p>
+      <div class="section-accent"></div>
+      <p class="font-serif text-lg text-charcoal-light italic max-w-md mx-auto mt-6">
+        "Pintar ao vivo é dar testemunho. A tela não esconde — ela revela o que as palavras não alcançam."
+      </p>
+    </div>
+
+    <!-- Lives Banner -->
+    <div class="bg-charcoal text-cream mb-12 p-8 flex flex-col sm:flex-row items-center justify-between gap-4 fade-in">
+      <div>
+        <span class="flex items-center gap-2 mb-2">
+          <span class="w-2 h-2 rounded-full bg-red-400 animate-pulse"></span>
+          <span class="font-sans text-xs tracking-widest uppercase text-gold">Lives toda sexta · 20h</span>
+        </span>
+        <p class="font-serif text-2xl text-cream italic">Assista ao nascimento de uma obra</p>
+      </div>
+      <a href="SEU_LINK_INSTAGRAM_AQUI" target="_blank" rel="noopener" class="shrink-0 border border-gold/50 text-gold text-xs tracking-[0.15em] uppercase px-8 py-3 font-sans hover:bg-gold/10 transition-colors">
+        Seguir no Instagram
+      </a>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+
+      <!-- Card 1 -->
+      <article class="art-card bg-white group cursor-pointer">
+        <div class="overflow-hidden aspect-[3/4] img-placeholder">
+          <img src="https://images.unsplash.com/photo-1549490349-8643362247b5?w=600&q=80" alt="Tela Acrílica" class="w-full h-full object-cover" loading="lazy" onerror="this.style.display='none'" />
+        </div>
+        <div class="p-6">
+          <span class="font-sans text-xs tracking-widest uppercase text-gold/70 block mb-1">Acrílica · Série Urbana</span>
+          <h3 class="font-serif text-xl text-charcoal mb-1">Cinza Que Pulsa</h3>
+          <p class="font-sans text-xs text-charcoal/40 mb-4">Acrílica sobre tela · 60×80cm · Peça única</p>
+          <div class="flex items-end justify-between">
+            <span class="font-serif text-2xl text-charcoal">R$ 3.400</span>
+            <a href="SEU_LINK_DE_PAGAMENTO_AQUI" target="_blank" rel="noopener" class="btn-buy border border-charcoal text-charcoal text-xs tracking-[0.15em] uppercase px-5 py-2.5 font-sans">
+              <span>Comprar Agora</span>
+            </a>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card 2 -->
+      <article class="art-card bg-white group cursor-pointer">
+        <div class="overflow-hidden aspect-[3/4] img-placeholder">
+          <img src="https://images.unsplash.com/photo-1578301978693-85fa9c0320b9?w=600&q=80" alt="Aquarela Viva" class="w-full h-full object-cover" loading="lazy" onerror="this.style.display='none'" />
+        </div>
+        <div class="p-6">
+          <span class="font-sans text-xs tracking-widest uppercase text-gold/70 block mb-1">Aquarela · Série Fluxo</span>
+          <h3 class="font-serif text-xl text-charcoal mb-1">Água que Decide</h3>
+          <p class="font-sans text-xs text-charcoal/40 mb-4">Aquarela sobre papel 300g · A3 · Edição de 2</p>
+          <div class="flex items-end justify-between">
+            <span class="font-serif text-2xl text-charcoal">R$ 1.650</span>
+            <a href="SEU_LINK_DE_PAGAMENTO_AQUI" target="_blank" rel="noopener" class="btn-buy border border-charcoal text-charcoal text-xs tracking-[0.15em] uppercase px-5 py-2.5 font-sans">
+              <span>Comprar Agora</span>
+            </a>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card 3 -->
+      <article class="art-card bg-white group cursor-pointer">
+        <div class="overflow-hidden aspect-[3/4] img-placeholder">
+          <img src="https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=600&q=80" alt="Técnica Mista" class="w-full h-full object-cover" loading="lazy" onerror="this.style.display='none'" />
+        </div>
+        <div class="p-6">
+          <span class="font-sans text-xs tracking-widest uppercase text-gold/70 block mb-1">Técnica Mista · Série Live</span>
+          <h3 class="font-serif text-xl text-charcoal mb-1">Ao Vivo #7</h3>
+          <p class="font-sans text-xs text-charcoal/40 mb-4">Acrílica + pastel · 50×70cm · Peça única · Live de 02/04</p>
+          <div class="flex items-end justify-between">
+            <span class="font-serif text-2xl text-charcoal">R$ 2.800</span>
+            <a href="SEU_LINK_DE_PAGAMENTO_AQUI" target="_blank" rel="noopener" class="btn-buy border border-charcoal text-charcoal text-xs tracking-[0.15em] uppercase px-5 py-2.5 font-sans">
+              <span>Comprar Agora</span>
+            </a>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card 4 -->
+      <article class="art-card bg-white group cursor-pointer">
+        <div class="overflow-hidden aspect-[3/4] img-placeholder">
+          <img src="https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?w=600&q=80" alt="Óleo Clássico" class="w-full h-full object-cover" loading="lazy" onerror="this.style.display='none'" />
+        </div>
+        <div class="p-6">
+          <span class="font-sans text-xs tracking-widest uppercase text-gold/70 block mb-1">Óleo · Série Clássica</span>
+          <h3 class="font-serif text-xl text-charcoal mb-1">Luz da Manhã</h3>
+          <p class="font-sans text-xs text-charcoal/40 mb-4">Óleo sobre tela linhada · 40×50cm · Peça única</p>
+          <div class="flex items-end justify-between">
+            <span class="font-serif text-2xl text-charcoal">R$ 4.200</span>
+            <a href="SEU_LINK_DE_PAGAMENTO_AQUI" target="_blank" rel="noopener" class="btn-buy border border-charcoal text-charcoal text-xs tracking-[0.15em] uppercase px-5 py-2.5 font-sans">
+              <span>Comprar Agora</span>
+            </a>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card 5 — Print disponível -->
+      <article class="art-card bg-white group cursor-pointer relative">
+        <div class="absolute top-4 right-4 z-10 bg-charcoal text-cream text-xs tracking-widest uppercase px-3 py-1 font-sans">
+          Print
+        </div>
+        <div class="overflow-hidden aspect-[3/4] img-placeholder">
+          <img src="https://images.unsplash.com/photo-1508193638397-1c4234db14d8?w=600&q=80" alt="Print Aquarela" class="w-full h-full object-cover" loading="lazy" onerror="this.style.display='none'" />
+        </div>
+        <div class="p-6">
+          <span class="font-sans text-xs tracking-widest uppercase text-gold/70 block mb-1">Giclée · Série Fluxo</span>
+          <h3 class="font-serif text-xl text-charcoal mb-1">Névoa — Impressão</h3>
+          <p class="font-sans text-xs text-charcoal/40 mb-4">Giclée papel algodão · A2 · Numerada · Ed. de 20</p>
+          <div class="flex items-end justify-between">
+            <span class="font-serif text-2xl text-charcoal">R$ 490</span>
+            <a href="SEU_LINK_DE_PAGAMENTO_AQUI" target="_blank" rel="noopener" class="btn-buy border border-charcoal text-charcoal text-xs tracking-[0.15em] uppercase px-5 py-2.5 font-sans">
+              <span>Comprar Agora</span>
+            </a>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card 6 -->
+      <article class="art-card bg-white group cursor-pointer">
+        <div class="overflow-hidden aspect-[3/4] img-placeholder">
+          <img src="https://images.unsplash.com/photo-1547826039-bfc35e0f1ea8?w=600&q=80" alt="Carvão Expressivo" class="w-full h-full object-cover" loading="lazy" onerror="this.style.display='none'" />
+        </div>
+        <div class="p-6">
+          <span class="font-sans text-xs tracking-widest uppercase text-gold/70 block mb-1">Carvão · Série Sombra</span>
+          <h3 class="font-serif text-xl text-charcoal mb-1">Penumbra</h3>
+          <p class="font-sans text-xs text-charcoal/40 mb-4">Carvão e giz branco · 50×70cm · Peça única</p>
+          <div class="flex items-end justify-between">
+            <span class="font-serif text-2xl text-charcoal">R$ 1.900</span>
+            <a href="SEU_LINK_DE_PAGAMENTO_AQUI" target="_blank" rel="noopener" class="btn-buy border border-charcoal text-charcoal text-xs tracking-[0.15em] uppercase px-5 py-2.5 font-sans">
+              <span>Comprar Agora</span>
+            </a>
+          </div>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- ===== DIVIDER ===== -->
+  <div class="max-w-6xl mx-auto px-6">
+    <div class="border-t border-charcoal/10 flex items-center gap-4 py-2">
+      <div class="flex-1 h-px bg-charcoal/8"></div>
+      <div class="w-1 h-1 rounded-full bg-gold"></div>
+      <div class="flex-1 h-px bg-charcoal/8"></div>
+    </div>
+  </div>
+
+  <!-- ===== SECTION: ACERVO SECRETO ===== -->
+  <section id="acervo-secreto" class="py-24 px-6 max-w-6xl mx-auto">
+    <div class="text-center mb-16 fade-in">
+      <span class="font-sans text-xs tracking-[0.3em] uppercase text-gold block mb-4">Artista · Coleção Pessoal</span>
+      <h2 class="font-serif text-5xl md:text-6xl text-charcoal italic mb-2">Acervo Secreto</h2>
+      <p class="font-sans text-sm tracking-widest uppercase text-charcoal/30 mb-6">Desenho Exclusivo · Ilustração · Edição Controlada</p>
+      <div class="section-accent"></div>
+      <p class="font-serif text-lg text-charcoal-light italic max-w-md mx-auto mt-6">
+        "Guardados por um tempo. Revelados agora. Cada traço é uma confissão de quem observa o mundo em silêncio."
+      </p>
+    </div>
+
+    <!-- Exclusividade Banner -->
+    <div class="border border-gold/30 bg-cream-dark/50 p-8 mb-12 text-center fade-in">
+      <div class="w-8 h-px bg-gold mx-auto mb-4"></div>
+      <p class="font-serif text-lg text-charcoal italic mb-2">"Cada peça deste acervo existe em apenas um exemplar no mundo."</p>
+      <p class="font-sans text-xs tracking-widest uppercase text-charcoal/40">Certificado de Autenticidade Incluso · Assinado à Mão</p>
+      <div class="w-8 h-px bg-gold mx-auto mt-4"></div>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+
+      <!-- Card 1 -->
+      <article class="art-card bg-white group cursor-pointer">
+        <div class="overflow-hidden aspect-[3/4] img-placeholder">
+          <img src="https://images.unsplash.com/photo-1604871000636-074fa5117945?w=600&q=80" alt="Grafite Fino" class="w-full h-full object-cover" loading="lazy" onerror="this.style.display='none'" />
+        </div>
+        <div class="p-6">
+          <span class="font-sans text-xs tracking-widest uppercase text-gold/70 block mb-1">Grafite · Série Botânica</span>
+          <h3 class="font-serif text-xl text-charcoal mb-1">Folha que Sonha</h3>
+          <p class="font-sans text-xs text-charcoal/40 mb-4">Grafite sobre papel 200g · A4 · Peça única</p>
+          <div class="flex items-end justify-between">
+            <span class="font-serif text-2xl text-charcoal">R$ 680</span>
+            <a href="SEU_LINK_DE_PAGAMENTO_AQUI" target="_blank" rel="noopener" class="btn-buy border border-charcoal text-charcoal text-xs tracking-[0.15em] uppercase px-5 py-2.5 font-sans">
+              <span>Comprar Agora</span>
+            </a>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card 2 -->
+      <article class="art-card bg-white group cursor-pointer">
+        <div class="overflow-hidden aspect-[3/4] img-placeholder">
+          <img src="https://images.unsplash.com/photo-1519638831568-d9897f54ed69?w=600&q=80" alt="Nanquim Preciso" class="w-full h-full object-cover" loading="lazy" onerror="this.style.display='none'" />
+        </div>
+        <div class="p-6">
+          <span class="font-sans text-xs tracking-widest uppercase text-gold/70 block mb-1">Nanquim · Série Arquitetura</span>
+          <h3 class="font-serif text-xl text-charcoal mb-1">Estrutura Invisível</h3>
+          <p class="font-sans text-xs text-charcoal/40 mb-4">Nanquim sobre papel algodão · A3 · Peça única</p>
+          <div class="flex items-end justify-between">
+            <span class="font-serif text-2xl text-charcoal">R$ 950</span>
+            <a href="SEU_LINK_DE_PAGAMENTO_AQUI" target="_blank" rel="noopener" class="btn-buy border border-charcoal text-charcoal text-xs tracking-[0.15em] uppercase px-5 py-2.5 font-sans">
+              <span>Comprar Agora</span>
+            </a>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card 3 — DESTAQUE -->
+      <article class="art-card bg-white group cursor-pointer relative">
+        <div class="absolute top-4 left-4 z-10 bg-gold text-white text-xs tracking-widest uppercase px-3 py-1 font-sans">
+          Destaque
+        </div>
+        <div class="overflow-hidden aspect-[3/4] img-placeholder">
+          <img src="https://images.unsplash.com/photo-1618005198919-d3d4b5a92ead?w=600&q=80" alt="Retrato Grafite" class="w-full h-full object-cover" loading="lazy" onerror="this.style.display='none'" />
+        </div>
+        <div class="p-6">
+          <span class="font-sans text-xs tracking-widest uppercase text-gold/70 block mb-1">Grafite · Série Retratos</span>
+          <h3 class="font-serif text-xl text-charcoal mb-1">O Olhar que Guarda</h3>
+          <p class="font-sans text-xs text-charcoal/40 mb-4">Grafite e sanguínea · 30×40cm · Peça única</p>
+          <div class="flex items-end justify-between">
+            <span class="font-serif text-2xl text-charcoal">R$ 1.400</span>
+            <a href="SEU_LINK_DE_PAGAMENTO_AQUI" target="_blank" rel="noopener" class="btn-buy border border-charcoal text-charcoal text-xs tracking-[0.15em] uppercase px-5 py-2.5 font-sans">
+              <span>Comprar Agora</span>
+            </a>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card 4 -->
+      <article class="art-card bg-white group cursor-pointer">
+        <div class="overflow-hidden aspect-[3/4] img-placeholder">
+          <img src="https://images.unsplash.com/photo-1511884642898-4c92249e20b6?w=600&q=80" alt="Pontilhismo" class="w-full h-full object-cover" loading="lazy" onerror="this.style.display='none'" />
+        </div>
+        <div class="p-6">
+          <span class="font-sans text-xs tracking-widest uppercase text-gold/70 block mb-1">Pontilhismo · Série Cosmo</span>
+          <h3 class="font-serif text-xl text-charcoal mb-1">Constelação Própria</h3>
+          <p class="font-sans text-xs text-charcoal/40 mb-4">Nanquim pontilhado · A3 · Peça única</p>
+          <div class="flex items-end justify-between">
+            <span class="font-serif text-2xl text-charcoal">R$ 1.100</span>
+            <a href="SEU_LINK_DE_PAGAMENTO_AQUI" target="_blank" rel="noopener" class="btn-buy border border-charcoal text-charcoal text-xs tracking-[0.15em] uppercase px-5 py-2.5 font-sans">
+              <span>Comprar Agora</span>
+            </a>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card 5 -->
+      <article class="art-card bg-white group cursor-pointer">
+        <div class="overflow-hidden aspect-[3/4] img-placeholder">
+          <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600&q=80" alt="Aguada Colorida" class="w-full h-full object-cover" loading="lazy" onerror="this.style.display='none'" />
+        </div>
+        <div class="p-6">
+          <span class="font-sans text-xs tracking-widest uppercase text-gold/70 block mb-1">Aguada · Série Cor</span>
+          <h3 class="font-serif text-xl text-charcoal mb-1">Sangue Vegetal</h3>
+          <p class="font-sans text-xs text-charcoal/40 mb-4">Aguada sobre papel · A3 · Peça única</p>
+          <div class="flex items-end justify-between">
+            <span class="font-serif text-2xl text-charcoal">R$ 820</span>
+            <a href="SEU_LINK_DE_PAGAMENTO_AQUI" target="_blank" rel="noopener" class="btn-buy border border-charcoal text-charcoal text-xs tracking-[0.15em] uppercase px-5 py-2.5 font-sans">
+              <span>Comprar Agora</span>
+            </a>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card 6 — Encomenda -->
+      <article class="art-card bg-charcoal group cursor-pointer relative overflow-hidden">
+        <div class="aspect-[3/4] flex flex-col items-center justify-center p-8 text-center">
+          <div class="w-12 h-px bg-gold mb-8"></div>
+          <p class="font-serif text-3xl text-cream italic mb-4">Encomende<br/>a sua obra</p>
+          <p class="font-sans text-xs text-cream/50 tracking-wide mb-8">Retrato personalizado · Temática livre · 30 dias de produção</p>
+          <div class="w-12 h-px bg-gold mb-8"></div>
+          <a href="SEU_LINK_ENCOMENDA_AQUI" target="_blank" rel="noopener" class="border border-gold/60 text-gold text-xs tracking-[0.15em] uppercase px-8 py-3 font-sans hover:bg-gold/10 transition-colors">
+            Solicitar Orçamento
+          </a>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- ===== SOBRE A FAMÍLIA ===== -->
+  <section class="bg-charcoal py-24 px-6">
+    <div class="max-w-4xl mx-auto text-center fade-in">
+      <span class="font-sans text-xs tracking-[0.3em] uppercase text-gold block mb-8">Quem Somos</span>
+      <h2 class="font-serif text-4xl md:text-5xl text-cream italic leading-snug mb-8">
+        "Uma família que não fala sobre arte.<br/>Ela <em class="text-gold">é</em> a arte."
+      </h2>
+      <div class="w-12 h-px bg-gold mx-auto mb-8"></div>
+      <p class="font-serif text-lg text-cream/60 leading-relaxed max-w-2xl mx-auto">
+        Três artistas. Uma casa. Linguagens diferentes que se completam em silêncio — o tear que ronca na sala, a tela que seca na varanda, o caderno que não sai da mochila. Este site é o encontro desse mundo com o seu.
+      </p>
+    </div>
+  </section>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="bg-cream-dark border-t border-charcoal/10 py-16 px-6">
+    <div class="max-w-6xl mx-auto">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-12 mb-12">
+        <div>
+          <p class="font-serif text-2xl text-charcoal mb-4">Ateliê<br/><em>Coletivo</em></p>
+          <p class="font-sans text-xs text-charcoal/40 leading-loose">Arte artesanal · Edição limitada<br/>Peças únicas com certificado.</p>
+        </div>
+        <div>
+          <p class="font-sans text-xs tracking-widest uppercase text-gold mb-4">Artistas</p>
+          <ul class="font-sans text-sm text-charcoal/60 space-y-2">
+            <li><a href="#tear-tinta" class="hover:text-charcoal transition-colors">Tear & Tinta</a></li>
+            <li><a href="#atelie-vivo" class="hover:text-charcoal transition-colors">Ateliê Vivo</a></li>
+            <li><a href="#acervo-secreto" class="hover:text-charcoal transition-colors">Acervo Secreto</a></li>
+          </ul>
+        </div>
+        <div>
+          <p class="font-sans text-xs tracking-widest uppercase text-gold mb-4">Contato</p>
+          <ul class="font-sans text-sm text-charcoal/60 space-y-2">
+            <li><a href="SEU_INSTAGRAM" target="_blank" class="hover:text-charcoal transition-colors">Instagram</a></li>
+            <li><a href="SEU_TIKTOK" target="_blank" class="hover:text-charcoal transition-colors">TikTok</a></li>
+            <li><a href="mailto:contato@seusite.com" class="hover:text-charcoal transition-colors">E-mail</a></li>
+            <li><a href="SEU_WHATSAPP" target="_blank" class="hover:text-charcoal transition-colors">WhatsApp</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="border-t border-charcoal/10 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <p class="font-sans text-xs text-charcoal/30">© 2025 Ateliê Coletivo. Todos os direitos reservados.</p>
+        <p class="font-sans text-xs text-charcoal/30">Feito com <span class="text-gold">·</span> amor e carvão</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // ── Mobile menu toggle ──
+    const menuBtn = document.getElementById('menu-btn');
+    const mobileMenu = document.getElementById('mobile-menu');
+    const bar1 = document.getElementById('bar1');
+    const bar2 = document.getElementById('bar2');
+    const bar3 = document.getElementById('bar3');
+    let menuOpen = false;
+
+    menuBtn.addEventListener('click', () => {
+      menuOpen = !menuOpen;
+      mobileMenu.classList.toggle('hidden', !menuOpen);
+      if (menuOpen) {
+        bar1.style.transform = 'rotate(45deg) translate(4px, 4px)';
+        bar2.style.opacity = '0';
+        bar3.style.transform = 'rotate(-45deg) translate(4px, -4px)';
+        bar3.style.width = '20px';
+      } else {
+        bar1.style.transform = '';
+        bar2.style.opacity = '';
+        bar3.style.transform = '';
+        bar3.style.width = '';
+      }
+    });
+
+    function closeMobileMenu() {
+      menuOpen = false;
+      mobileMenu.classList.add('hidden');
+      bar1.style.transform = '';
+      bar2.style.opacity = '';
+      bar3.style.transform = '';
+      bar3.style.width = '';
+    }
+
+    // ── Scroll fade-in ──
+    const fadeEls = document.querySelectorAll('.fade-in');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('visible');
+          observer.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+
+    fadeEls.forEach(el => observer.observe(el));
+
+    // ── Trigger hero fade immediately ──
+    document.querySelectorAll('#hero .fade-in').forEach((el, i) => {
+      setTimeout(() => el.classList.add('visible'), 100 + i * 140);
+    });
+
+    // ── Marquee animation ──
+    const mc = document.querySelector('.animate-marquee-container');
+    if (mc) {
+      const inner = mc.children[0];
+      const clone = inner.cloneNode(true);
+      mc.appendChild(clone);
+      let pos = 0;
+      const speed = 0.5;
+      function tick() {
+        pos -= speed;
+        const w = inner.scrollWidth + 64;
+        if (Math.abs(pos) >= w) pos = 0;
+        mc.style.transform = `translateX(${pos}px)`;
+        requestAnimationFrame(tick);
+      }
+      tick();
+    }
+  </script>
+</body>
+</html>
